@@ -1,0 +1,79 @@
+# Google Ads AI Platform - Requirements 2025 Edition
+# Latest compatible versions without conflicts
+
+# FastAPI and Core Dependencies - Latest 2025 versions
+fastapi[standard]>=0.116.0,<0.120.0
+uvicorn[standard]>=0.32.0,<0.35.0
+
+# Pydantic V2 - Latest stable with settings
+pydantic>=2.11.0,<3.0.0
+pydantic-settings>=2.10.0,<3.0.0  # Fixed conflict with mcp
+
+# Google Cloud and AI - Latest 2025 compatible versions
+google-genai
+google-cloud-firestore
+firebase-admin
+
+# Google Ads API - Latest 2025 version
+google-ads
+
+# Google ADK (if available)
+google-adk
+
+# Google Authentication - Latest versions
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+
+# Authentication & Security - Latest stable
+python-jose[cryptography]>=3.3.0,<4.0.0
+passlib[bcrypt]>=1.7.4,<2.0.0
+python-multipart>=0.0.10,<1.0.0
+
+# HTTP and utilities - Latest compatible
+httpx[http2]>=0.28.0,<1.0.0
+python-dotenv>=1.0.1,<2.0.0
+aiofiles>=24.1.0,<25.0.0
+
+# Google Cloud dependencies - Latest compatible
+protobuf>=4.25.0,<6.0.0
+grpcio>=1.60.0,<2.0.0
+grpcio-status>=1.60.0,<2.0.0
+
+
+# Additional Google Cloud core
+google-cloud-core
+google-api-core
+
+# OAuth2 flow dependencies
+oauthlib
+requests-oauthlib
+
+# YAML configuration (Google Ads API)
+PyYAML>=6.0.2,<7.0.0
+
+# Enhanced logging and monitoring
+rich>=13.8.0,<14.0.0  # Beautiful console output
+python-json-logger>=2.0.7,<3.0.0  # Structured logging
+
+# Optional: Async database support
+asyncpg>=0.29.0,<1.0.0  # For PostgreSQL if needed
+aiosqlite>=0.20.0,<1.0.0  # For SQLite if needed
+
+# Optional: Enhanced validation and serialization
+email-validator>=2.2.0,<3.0.0  # For email validation
+phonenumbers>=8.13.0,<9.0.0  # For phone number validation
+
+# Performance and optimization
+orjson>=3.10.0,<4.0.0  # Fast JSON serialization
+uvloop>=0.21.0,<1.0.0  # Fast event loop (Unix only)
+
+# Development tools (optional)
+black>=24.0.0,<25.0.0  # Code formatting
+isort>=5.13.0,<6.0.0  # Import sorting
+mypy>=1.13.0,<2.0.0  # Type checking
+ruff>=0.8.0,<1.0.0  # Fast linting
+
+# Optional: Advanced monitoring and observability
+opentelemetry-api>=1.27.0,<2.0.0
+opentelemetry-sdk>=1.27.0,<2.0.0

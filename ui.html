@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Ads AI Platform - Fixed Version</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1400px;
+            margin: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 700px;
+        }
+
+        .left-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        .left-panel h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .left-panel p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .feature-list li {
+            margin: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "✨";
+            position: absolute;
+            left: 0;
+        }
+
+        .right-panel {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .auth-container {
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h2 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .auth-section {
+            display: none;
+        }
+
+        .auth-section.active {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-google {
+            background: #4285f4;
+            color: white;
+        }
+
+        .btn-google:hover:not(:disabled) {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 133, 244, 0.3);
+        }
+
+        .btn-connect {
+            background: #34a853;
+            color: white;
+        }
+
+        .btn-connect:hover:not(:disabled) {
+            background: #2d8e47;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 168, 83, 0.3);
+        }
+
+        .btn-chat {
+            background: #ea4335;
+            color: white;
+        }
+
+        .btn-chat:hover:not(:disabled) {
+            background: #d93025;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(234, 67, 53, 0.3);
+        }
+
+        .btn-secondary {
+            background: #666;
+            color: white;
+        }
+
+        .user-info {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: block;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-connected {
+            background: #34a853;
+        }
+
+        .status-disconnected {
+            background: #ea4335;
+        }
+
+        .status-checking {
+            background: #fbbc05;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4285f4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #c62828;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #2e7d32;
+            font-size: 0.9rem;
+        }
+
+        .info-message {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #1976d2;
+            font-size: 0.9rem;
+        }
+
+        /* Chat Interface Styles */
+        .chat-container {
+            display: none;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            height: 500px;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .chat-container.active {
+            display: flex;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h4 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .agent-selector {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .agent-selector option {
+            color: #333;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.agent {
+            background: white;
+            border: 1px solid #e1e5e9;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .message-info {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #e1e5e9;
+            background: white;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 20px;
+            resize: none;
+            min-height: 44px;
+            max-height: 100px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input textarea:focus {
+            border-color: #4285f4;
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+            white-space: nowrap;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: #f0f0f0;
+            border-radius: 18px;
+            margin-right: auto;
+            max-width: 85px;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.5s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .chat-status {
+            padding: 15px 20px;
+            background: #e8f5e8;
+            border-left: 4px solid #34a853;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action {
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .quick-action:hover {
+            background: #e0e0e0;
+            border-color: #4285f4;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                margin: 10px;
+                max-height: 90vh;
+            }
+            
+            .left-panel {
+                padding: 30px 20px;
+            }
+            
+            .right-panel {
+                padding: 30px 20px;
+            }
+
+            .chat-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <h1>Google Ads AI Platform</h1>
+            <p>Harness the power of Google's Agent Development Kit to optimize your advertising campaigns with intelligent AI agents.</p>
+            
+            <ul class="feature-list">
+                <li>AI-powered campaign optimization</li>
+                <li>Real-time performance analysis</li>
+                <li>Multi-agent system architecture</li>
+                <li>Google ADK integration</li>
+                <li>Advanced keyword research</li>
+                <li>Automated bid management</li>
+                <li>Authenticated API access</li>
+                <li>Development Web UI</li>
+            </ul>
+        </div>
+
+        <div class="right-panel">
+            <div class="auth-container">
+                <div class="logo">
+                    <h2>🤖 AI Agents</h2>
+                    <p>Powered by Google ADK</p>
+                </div>
+
+                <!-- Login Section -->
+                <div id="login-section" class="auth-section active">
+                    <button id="google-login-btn" class="btn btn-google">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Sign in with Google
+                    </button>
+                </div>
+
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="auth-section">
+                    <div class="user-info">
+                        <img id="user-avatar" class="user-avatar" src="" alt="User Avatar">
+                        <h3 id="user-name">User Name</h3>
+                        <p id="user-email">user@example.com</p>
+                    </div>
+
+                    <div class="status-item">
+                        <div style="display: flex; align-items: center;">
+                            <div id="auth-status" class="status-indicator status-disconnected"></div>
+                            <span>Firebase Authentication</span>
+                        </div>
+                        <span id="auth-status-text">Disconnected</span>
+                    </div>
+
+                    <div class="status-item">
+                        <div style="display: flex; align-items: center;">
+                            <div id="ads-status" class="status-indicator status-disconnected"></div>
+                            <span>Google Ads Account</span>
+                        </div>
+                        <span id="ads-status-text">Not Connected</span>
+                    </div>
+
+                    <div class="status-item">
+                        <div style="display: flex; align-items: center;">
+                            <div id="adk-status" class="status-indicator status-checking"></div>
+                            <span>ADK Integration</span>
+                        </div>
+                        <span id="adk-status-text">Checking...</span>
+                    </div>
+
+                    <div id="messages-container"></div>
+
+                    <button id="connect-ads-btn" class="btn btn-connect">
+                        <span id="connect-ads-loading" class="loading" style="display: none;"></span>
+                        Connect Google Ads Account
+                    </button>
+
+                    <button id="launch-chat-btn" class="btn btn-chat" disabled>
+                        💬 Launch AI Chat
+                    </button>
+
+                    <button id="launch-adk-btn" class="btn btn-secondary">
+                        🚀 Open ADK Web UI (Development)
+                    </button>
+
+                    <button id="logout-btn" class="btn btn-secondary" style="margin-top: 20px;">
+                        Sign Out
+                    </button>
+
+                    <!-- Integrated Chat Interface -->
+                    <div id="chat-interface" class="chat-container">
+                        <div class="chat-header">
+                            <h4>🤖 AI Agent Chat</h4>
+                            <select id="agent-selector" class="agent-selector">
+                                <option value="">Select Agent...</option>
+                            </select>
+                        </div>
+                        <div id="chat-messages" class="chat-messages">
+                            <div class="chat-status">
+                                Welcome! Select an agent and start chatting to get AI-powered insights for your Google Ads campaigns.
+                            </div>
+                        </div>
+                        <div class="typing-indicator" id="typing-indicator">
+                            <div class="typing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <div class="quick-actions">
+                                <div class="quick-action" onclick="sendQuickMessage('Analyze my campaign performance')">📊 Analyze Performance</div>
+                                <div class="quick-action" onclick="sendQuickMessage('Optimize my keywords for better ROI')">🎯 Optimize Keywords</div>
+                                <div class="quick-action" onclick="sendQuickMessage('Generate ad copy for my product')">✍️ Generate Ad Copy</div>
+                                <div class="quick-action" onclick="sendQuickMessage('What are the latest Google Ads best practices?')">💡 Best Practices</div>
+                            </div>
+                            <div class="chat-input">
+                                <textarea id="chat-input" placeholder="Ask me anything about your Google Ads campaigns..." rows="1"></textarea>
+                                <button id="send-btn" class="send-btn" onclick="sendMessage()">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCS3XlmRS4Al9u-xWJZcAbOzGK-Hyz0kQs",
+            authDomain: "lateral-layout-465711-e1.firebaseapp.com",
+            projectId: "lateral-layout-465711-e1",
+            storageBucket: "lateral-layout-465711-e1.appspot.com",
+            messagingSenderId: "305155879131",
+            appId: "1:305155879131:web:a266b3b82ca4b1c2d25cfe"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        class GoogleAdsAIApp {
+            constructor() {
+                this.currentUser = null;
+                this.adsConnected = false;
+                this.adkAvailable = false;
+                this.sessionId = null;
+                this.selectedAgent = null;
+                this.API_BASE = 'http://localhost:8000';
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.checkAuthState();
+            }
+
+            setupEventListeners() {
+                // Google login
+                document.getElementById('google-login-btn').addEventListener('click', () => {
+                    this.signInWithGoogle();
+                });
+
+                // Connect Google Ads
+                document.getElementById('connect-ads-btn').addEventListener('click', () => {
+                    this.connectGoogleAds();
+                });
+
+                // Launch integrated chat
+                document.getElementById('launch-chat-btn').addEventListener('click', () => {
+                    this.launchIntegratedChat();
+                });
+
+                // Launch ADK Web UI
+                document.getElementById('launch-adk-btn').addEventListener('click', () => {
+                    this.launchADKWebUI();
+                });
+
+                // Logout
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    this.signOut();
+                });
+
+                // Agent selector
+                document.getElementById('agent-selector').addEventListener('change', (e) => {
+                    this.selectedAgent = e.target.value;
+                    this.showMessage('Agent selected: ' + (e.target.options[e.target.selectedIndex].text || 'None'), 'info');
+                });
+
+                // Chat input
+                document.getElementById('chat-input').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                // Auto-resize textarea
+                document.getElementById('chat-input').addEventListener('input', (e) => {
+                    e.target.style.height = 'auto';
+                    e.target.style.height = e.target.scrollHeight + 'px';
+                });
+
+                // Auth state changes
+                firebase.auth().onAuthStateChanged((user) => {
+                    this.currentUser = user;
+                    this.updateUI();
+                    if (user) {
+                        this.checkIntegrations();
+                    }
+                });
+            }
+
+            showMessage(message, type = 'info') {
+                const container = document.getElementById('messages-container');
+                const messageDiv = document.createElement('div');
+                
+                switch(type) {
+                    case 'error':
+                        messageDiv.className = 'error-message';
+                        break;
+                    case 'success':
+                        messageDiv.className = 'success-message';
+                        break;
+                    default:
+                        messageDiv.className = 'info-message';
+                }
+                
+                messageDiv.textContent = message;
+                container.appendChild(messageDiv);
+                
+                // Auto-remove after 10 seconds
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.remove();
+                    }
+                }, 10000);
+            }
+
+            async makeAPICall(endpoint, method = 'GET', data = null) {
+                try {
+                    if (!this.currentUser) {
+                        throw new Error('User not authenticated');
+                    }
+
+                    const idToken = await this.currentUser.getIdToken();
+                    const url = `${this.API_BASE}${endpoint}`;
+                    
+                    console.log(`Making ${method} request to: ${url}`);
+                    
+                    const requestOptions = {
+                        method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        }
+                    };
+
+                    if (data && method !== 'GET') {
+                        requestOptions.body = JSON.stringify(data);
+                    }
+
+                    const response = await fetch(url, requestOptions);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API call failed for ${endpoint}:`, error);
+                    throw error;
+                }
+            }
+
+            async signInWithGoogle() {
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    provider.addScope('https://www.googleapis.com/auth/adwords');
+                    provider.addScope('email');
+                    provider.addScope('profile');
+
+                    const result = await firebase.auth().signInWithPopup(provider);
+                    
+                    // Send token to backend
+                    const idToken = await result.user.getIdToken();
+                    await this.authenticateWithBackend(idToken, {
+                        uid: result.user.uid,
+                        email: result.user.email,
+                        name: result.user.displayName,
+                        picture: result.user.photoURL
+                    });
+
+                } catch (error) {
+                    console.error('Sign in error:', error);
+                    this.showMessage('Sign in failed: ' + error.message, 'error');
+                }
+            }
+
+            async authenticateWithBackend(token, userInfo) {
+                try {
+                    const response = await fetch(`${this.API_BASE}/api/auth/chrome-extension`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            userInfo: userInfo,
+                            extensionId: 'web-app'
+                        })
+                    });
+
+                    if (response.ok) {
+                        console.log('Backend authentication successful');
+                        this.showMessage('Successfully authenticated with backend!', 'success');
+                    } else {
+                        const errorText = await response.text();
+                        throw new Error(`Backend auth failed: ${response.status} - ${errorText}`);
+                    }
+                } catch (error) {
+                    console.error('Backend authentication error:', error);
+                    this.showMessage('Backend authentication failed: ' + error.message, 'error');
+                }
+            }
+
+            async checkIntegrations() {
+                this.showMessage('Checking integrations...', 'info');
+                
+                try {
+                    await Promise.all([
+                        this.checkGoogleAdsConnection(),
+                        this.checkADKIntegration(),
+                        this.loadAvailableAgents()
+                    ]);
+                } catch (error) {
+                    console.error('Error checking integrations:', error);
+                    this.showMessage('Error checking integrations: ' + error.message, 'error');
+                }
+            }
+
+            async checkGoogleAdsConnection() {
+                try {
+                    const data = await this.makeAPICall('/api/google-ads/accounts');
+                    this.adsConnected = data.accounts && data.accounts.length > 0;
+                    
+                    if (this.adsConnected) {
+                        this.showMessage(`Found ${data.accounts.length} Google Ads account(s)`, 'success');
+                    } else {
+                        this.showMessage('No Google Ads accounts connected', 'info');
+                    }
+                    
+                    console.log('Google Ads check:', this.adsConnected);
+                } catch (error) {
+                    console.error('Error checking Google Ads connection:', error);
+                    this.adsConnected = false;
+                    this.showMessage('Error checking Google Ads connection: ' + error.message, 'error');
+                }
+            }
+
+            async checkADKIntegration() {
+                try {
+                    const data = await this.makeAPICall('/api/adk/status');
+                    this.adkAvailable = data.adk_available || false;
+                    
+                    if (this.adkAvailable) {
+                        this.showMessage('ADK integration is active and ready', 'success');
+                        
+                        if (data.components) {
+                            const componentStatus = Object.entries(data.components).map(([name, status]) => 
+                                `${name}: ${status ? '✅' : '❌'}`
+                            ).join(', ');
+                            console.log('ADK Components:', componentStatus);
+                        }
+                    } else {
+                        this.showMessage('ADK integration is not available', 'error');
+                        
+                        if (data.install_command) {
+                            this.showMessage(`To enable ADK: ${data.install_command}`, 'info');
+                        }
+                    }
+                    
+                    console.log('ADK check:', this.adkAvailable, data);
+                } catch (error) {
+                    console.error('Error checking ADK integration:', error);
+                    this.adkAvailable = false;
+                    this.showMessage('Error checking ADK integration: ' + error.message, 'error');
+                }
+            }
+
+            async loadAvailableAgents() {
+                try {
+                    const data = await this.makeAPICall('/api/adk/agents/available');
+                    const selector = document.getElementById('agent-selector');
+                    
+                    // Clear existing options
+                    selector.innerHTML = '<option value="">Select Agent...</option>';
+                    
+                    if (data.agents && data.agents.length > 0) {
+                        data.agents.forEach(agent => {
+                            const option = document.createElement('option');
+                            option.value = agent.folder || agent.name || 'default';
+                            option.textContent = `${agent.name} - ${agent.description || 'AI Assistant'}`;
+                            selector.appendChild(option);
+                        });
+                        
+                        this.showMessage(`Loaded ${data.agents.length} available agent(s)`, 'success');
+                        console.log(`Loaded ${data.agents.length} agents`);
+                    } else {
+                        this.showMessage('No agents available', 'info');
+                        
+                        // Add fallback agent option
+                        const fallbackOption = document.createElement('option');
+                        fallbackOption.value = 'fallback';
+                        fallbackOption.textContent = 'Fallback Agent - Basic AI Assistant';
+                        selector.appendChild(fallbackOption);
+                    }
+                } catch (error) {
+                    console.error('Failed to load agents:', error);
+                    this.showMessage('Failed to load agents: ' + error.message, 'error');
+                    
+                    // Add fallback agent option
+                    const selector = document.getElementById('agent-selector');
+                    selector.innerHTML = '<option value="">Select Agent...</option>';
+                    const fallbackOption = document.createElement('option');
+                    fallbackOption.value = 'fallback';
+                    fallbackOption.textContent = 'Fallback Agent - Basic AI Assistant';
+                    selector.appendChild(fallbackOption);
+                }
+            }
+
+            async connectGoogleAds() {
+                const btn = document.getElementById('connect-ads-btn');
+                const loading = document.getElementById('connect-ads-loading');
+                
+                btn.disabled = true;
+                loading.style.display = 'inline-block';
+
+                try {
+                    this.showMessage('Initiating Google Ads connection...', 'info');
+                    
+                    // Check if we can get OAuth URL
+                    const oauthData = await this.makeAPICall('/api/auth/google-ads/oauth-url');
+                    
+                    if (oauthData.oauth_url) {
+                        // Open OAuth flow in new window
+                        const authWindow = window.open(
+                            oauthData.oauth_url,
+                            'google_ads_auth',
+                            'width=500,height=600,scrollbars=yes,resizable=yes'
+                        );
+                        
+                        this.showMessage('Complete OAuth flow in the popup window', 'info');
+                        
+                        // Monitor for window close or success
+                        const checkClosed = setInterval(() => {
+                            if (authWindow.closed) {
+                                clearInterval(checkClosed);
+                                this.showMessage('OAuth window closed. Please try again if connection was not completed.', 'info');
+                                btn.disabled = false;
+                                loading.style.display = 'none';
+                            }
+                        }, 1000);
+                        
+                    } else {
+                        // Fallback: simulate connection for development
+                        await this.simulateDelay(2000);
+                        
+                        const connectionResult = await this.makeAPICall('/api/auth/google-ads/connect', 'POST', {
+                            customer_id: '123-456-7890',
+                            access_token: 'simulated-ads-token',
+                            refresh_token: 'simulated-refresh-token'
+                        });
+
+                        if (connectionResult.status === 'connected') {
+                            this.adsConnected = true;
+                            this.showMessage('Google Ads account connected successfully!', 'success');
+                        } else {
+                            throw new Error('Connection failed: ' + JSON.stringify(connectionResult));
+                        }
+                    }
+                } catch (error) {
+                    console.error('Google Ads connection error:', error);
+                    this.showMessage('Connection failed: ' + error.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    loading.style.display = 'none';
+                    this.updateUI();
+                }
+            }
+
+            launchIntegratedChat() {
+                if (!this.selectedAgent) {
+                    this.showMessage('Please select an agent first', 'error');
+                    return;
+                }
+                
+                document.getElementById('chat-interface').classList.add('active');
+                this.showMessage('Chat interface launched', 'success');
+                this.scrollToBottom();
+            }
+
+            launchADKWebUI() {
+                window.open('http://localhost:8000', '_blank');
+            }
+
+            async sendMessage() {
+                const input = document.getElementById('chat-input');
+                const message = input.value.trim();
+                
+                if (!message) {
+                    return;
+                }
+
+                if (!this.selectedAgent) {
+                    this.showMessage('Please select an agent first', 'error');
+                    return;
+                }
+
+                input.value = '';
+                input.style.height = 'auto';
+                
+                this.addMessageToChat('user', message);
+                this.showTypingIndicator();
+
+                try {
+                    const data = await this.makeAPICall('/api/adk/agents/chat', 'POST', {
+                        message: message,
+                        agent_name: this.selectedAgent,
+                        session_id: this.sessionId,
+                        context: {
+                            user_id: this.currentUser.uid,
+                            timestamp: new Date().toISOString()
+                        }
+                    });
+
+                    this.sessionId = data.session_id;
+                    
+                    this.hideTypingIndicator();
+                    this.addMessageToChat('agent', data.response, {
+                        agent: data.agent_name,
+                        tools_used: data.tools_used,
+                        processing_time: data.processing_time_ms,
+                        service: data.service
+                    });
+
+                } catch (error) {
+                    this.hideTypingIndicator();
+                    
+                    let errorMessage = 'Sorry, I encountered an error. ';
+                    if (error.message.includes('ADK not available')) {
+                        errorMessage += 'The Google ADK service is not available. Using fallback AI assistant.';
+                    } else if (error.message.includes('503')) {
+                        errorMessage += 'Service temporarily unavailable. Please try again.';
+                    } else {
+                        errorMessage += 'Please try again or contact support.';
+                    }
+                    
+                    this.addMessageToChat('agent', errorMessage, {
+                        error: true,
+                        original_error: error.message
+                    });
+                    
+                    console.error('Chat error:', error);
+                    this.showMessage('Chat error: ' + error.message, 'error');
+                }
+            }
+
+            sendQuickMessage(message) {
+                if (!this.selectedAgent) {
+                    this.showMessage('Please select an agent first', 'error');
+                    return;
+                }
+                
+                document.getElementById('chat-input').value = message;
+                this.sendMessage();
+            }
+
+            addMessageToChat(sender, message, metadata = {}) {
+                const messagesContainer = document.getElementById('chat-messages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const messageText = document.createElement('div');
+                messageText.textContent = message;
+                messageDiv.appendChild(messageText);
+                
+                if (sender === 'agent' && metadata.tools_used && metadata.tools_used.length > 0) {
+                    const toolsInfo = document.createElement('div');
+                    toolsInfo.className = 'message-info';
+                    toolsInfo.textContent = `Tools used: ${metadata.tools_used.join(', ')}`;
+                    messageDiv.appendChild(toolsInfo);
+                }
+                
+                if (metadata.processing_time) {
+                    const timeInfo = document.createElement('div');
+                    timeInfo.className = 'message-info';
+                    timeInfo.textContent = `Response time: ${metadata.processing_time}ms`;
+                    messageDiv.appendChild(timeInfo);
+                }
+                
+                if (metadata.service) {
+                    const serviceInfo = document.createElement('div');
+                    serviceInfo.className = 'message-info';
+                    serviceInfo.textContent = `Service: ${metadata.service}`;
+                    messageDiv.appendChild(serviceInfo);
+                }
+                
+                messagesContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            showTypingIndicator() {
+                document.getElementById('typing-indicator').classList.add('active');
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                document.getElementById('typing-indicator').classList.remove('active');
+            }
+
+            scrollToBottom() {
+                const messagesContainer = document.getElementById('chat-messages');
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            async signOut() {
+                try {
+                    await firebase.auth().signOut();
+                    this.currentUser = null;
+                    this.adsConnected = false;
+                    this.adkAvailable = false;
+                    this.sessionId = null;
+                    this.selectedAgent = null;
+                    document.getElementById('chat-interface').classList.remove('active');
+                    document.getElementById('messages-container').innerHTML = '';
+                    this.updateUI();
+                    this.showMessage('Signed out successfully', 'success');
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                    this.showMessage('Sign out error: ' + error.message, 'error');
+                }
+            }
+
+            updateUI() {
+                const loginSection = document.getElementById('login-section');
+                const dashboardSection = document.getElementById('dashboard-section');
+                const authStatus = document.getElementById('auth-status');
+                const authStatusText = document.getElementById('auth-status-text');
+                const adsStatus = document.getElementById('ads-status');
+                const adsStatusText = document.getElementById('ads-status-text');
+                const adkStatus = document.getElementById('adk-status');
+                const adkStatusText = document.getElementById('adk-status-text');
+                const launchChatBtn = document.getElementById('launch-chat-btn');
+
+                if (this.currentUser) {
+                    // Show dashboard
+                    loginSection.classList.remove('active');
+                    dashboardSection.classList.add('active');
+
+                    // Update user info
+                    document.getElementById('user-name').textContent = this.currentUser.displayName || 'User';
+                    document.getElementById('user-email').textContent = this.currentUser.email || '';
+                    document.getElementById('user-avatar').src = this.currentUser.photoURL || '';
+
+                    // Update auth status
+                    authStatus.className = 'status-indicator status-connected';
+                    authStatusText.textContent = 'Connected';
+
+                    // Update ads status
+                    if (this.adsConnected) {
+                        adsStatus.className = 'status-indicator status-connected';
+                        adsStatusText.textContent = 'Connected';
+                    } else {
+                        adsStatus.className = 'status-indicator status-disconnected';
+                        adsStatusText.textContent = 'Not Connected';
+                    }
+
+                    // Update ADK status
+                    if (this.adkAvailable) {
+                        adkStatus.className = 'status-indicator status-connected';
+                        adkStatusText.textContent = 'Active';
+                        launchChatBtn.disabled = false;
+                    } else {
+                        adkStatus.className = 'status-indicator status-disconnected';
+                        adkStatusText.textContent = 'Unavailable';
+                        launchChatBtn.disabled = true;
+                    }
+                } else {
+                    // Show login
+                    loginSection.classList.add('active');
+                    dashboardSection.classList.remove('active');
+                }
+            }
+
+            simulateDelay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Global functions for quick actions
+        function sendQuickMessage(message) {
+            const app = window.googleAdsApp;
+            if (app && app.selectedAgent) {
+                app.sendQuickMessage(message);
+            } else {
+                alert('Please select an agent first');
+            }
+        }
+
+        function sendMessage() {
+            const app = window.googleAdsApp;
+            if (app) {
+                app.sendMessage();
+            }
+        }
+
+        // Initialize the app
+        window.googleAdsApp = new GoogleAdsAIApp();
+    </script>
+</body>
+</html>

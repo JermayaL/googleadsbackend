@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Google Ads AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="popup-container">
+        <div class="header">
+            <img src="icons/icon48.png" alt="AI Assistant" class="logo">
+            <h1>Google Ads AI Assistant</h1>
+        </div>
+        
+        <div id="auth-section" class="section">
+            <button id="login-btn" class="primary-btn">
+                🔐 Sign in with Google
+            </button>
+            <p class="info-text">Connect your Google Ads account to get started</p>
+        </div>
+        
+        <div id="main-section" class="section hidden">
+            <div class="user-info">
+                <img id="user-avatar" src="" alt="User" class="avatar">
+                <div class="user-details">
+                    <span id="user-name">User Name</span>
+                    <span id="user-email" class="email">user@email.com</span>
+                </div>
+                <button id="logout-btn" class="icon-btn">🚪</button>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Connected Accounts</span>
+                    <span id="accounts-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">AI Generations Today</span>
+                    <span id="ai-generations" class="stat-value">0</span>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button id="analyze-page-btn" class="action-btn">
+                    📊 Analyze This Page
+                </button>
+                <button id="open-chat-btn" class="action-btn">
+                    💬 Open AI Chat
+                </button>
+                <button id="quick-optimize-btn" class="action-btn">
+                    ⚡ Quick Optimize
+                </button>
+            </div>
+            
+            <div class="recent-suggestions">
+                <h3>Recent AI Suggestions</h3>
+                <div id="suggestions-list" class="suggestions">
+                    <div class="suggestion-item">
+                        <span class="suggestion-text">No recent suggestions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="loading-section" class="section hidden">
+            <div class="loading-spinner"></div>
+            <p>Connecting to AI...</p>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Google Ads AI Assistant",
+  "version": "1.0.0",
+  "description": "AI-powered assistant for Google Ads optimization",
+  "permissions": [
+    "identity",
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://ads.google.com/*",
+    "https://googleads.googleapis.com/*",
+    "https://your-api-domain.com/*"
+  ],
+  "oauth2": {
+    "client_id": "your-client-id.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/adwords",
+      "openid",
+      "email",
+      "profile"
+    ]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://ads.google.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Google Ads AI Assistant"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
